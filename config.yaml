@@ -1,0 +1,9 @@
+# config.yaml
+directories:
+  data: "data"
+  src: "src"
+
+qcc_params:
+  chart_type: "xbar"
+  batch_size: 4
+  round_digits: 2

@@ -1,0 +1,14 @@
+.continue/**
+#!.continue/rules/
+!.continue/**/CONTINUE.md
+
+.venv/
+
+# Ignore some R & RStudio files
+*.Rhistory
+*.RData
+*.Rproj.user/
+
+# Ignore common junk
+.DS_Store
+Thumbs.db

@@ -1,0 +1,32 @@
+As an expert R programmer, write a script that reads text file "RNG_for_qcc.csv" 
+ and feeds it to the qcc function in the qcc package.
+The csv file is in the "output" folder under the "data" directory pointed to by
+ configuration file config.yaml in the project's root directory, which is an
+ ancestor of the folder that the generated R script will live in.
+Read the csv file into a data frame. Sort the data frame by stage and batch.
+Group the rows of the data frame by the values in the "stage" column.
+For each distinct value of "stage" call the qcc function with data = a data
+ frame consisting of columns with name xi where i is an integer.
+ The qcc argument for type is to be obtained from the chart_type parameter in
+ the YAML file. Don't override the plot argument.
+ 
+Change the names of the elements in the list of qcc objects to format "stage_i"
+where i is an integer corresponding to the element's index in the list.
+
+Consolidate the results of the qcc objects into one tidy data frame and write
+ it to file.
+The contents needed from each qcc object are the vectors: statistics, center,
+ LCL as limits[1,1], and UCL as limits[1,2]. These vectors can be placed into a
+ data frame. The column with the statistics should be named according to the
+ chart_type parameter from the YAML config file. Prepend two integer columns,
+ one named "stage"" as the qcc object's index in the list and one named "group"
+ as the row number.
+Stack all the data frames built from each qcc object.
+Override the values of center, LCL, and UCL for rows of the last stage, where
+ stage = max(stage), by using the same values from the last row of the previous
+ stage, where stage = max(stage) - 1.
+Round all non-integer numeric columns to number of decimal digits specified by
+ the round_digits parameter in the YAML file.
+Save the final data frame to file "control_chart_stats.csv" in the same
+ directory as the input file.
+ 

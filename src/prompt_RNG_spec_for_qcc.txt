@@ -1,0 +1,41 @@
+Generate Python code to populate a csv text data file in "output/RNG_for_qcc.csv" under
+ the data directory specified in config.yaml file in the project's root directory.
+
+Begin the code with comments indicating the purpose of the code and indicate that this
+ file was used the prompt for code generation. Use this file's name explicitly.
+
+Immediately below are the names of the headers and the expected data types for each column.
+
+stage: integer.
+batch: integer.
+
+There should be additional decimal columns, with 2 decimal digits, named x1 through xb,
+ where b is the batch_size parameter in the config file. These will collectively be 
+ referred to as the "measures" columns.
+
+Set the starting seed for random number generation (RNG) to 42.
+
+Generate random numbers to fill the "measures" columns using "Table 1" below for guidance.
+
+Table 1:
+stage  batches   avg   sd  slope
+    1       10  20.0  4.0    0.8
+    2       16  17.0  3.5    0.4
+    3       20  15.0  2.5    0.0
+    4        5  15.5  2.7    0.2
+
+The stage column indicates the value of the stage field.
+The batches column specifies how many rows of random numbers in the "measures" columns
+ to generate for that stage.
+The avg and sd columns indicate the starting mean and the standard deviation of the
+ normal distribution for random number generation.
+Change the value of the average of the normal distribution from row to row within each
+ stage by the value in the slope column.
+
+Within each group of results by stage, set batch starting at 1 and increment by 1 with
+ each row. 
+
+Combine the results of all iterations into the target text file.
+Check that the directory where file will be written exists but do not create it if it doesn't.
+
+Print a message indicating success, the size of the output data, and the output file path.
