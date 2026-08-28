@@ -1,3 +1,4 @@
+# Ignore files from the Continue extension (except CONTINUE.md)
 .continue/**
 #!.continue/rules/
 !.continue/**/CONTINUE.md
@@ -12,3 +13,6 @@
 # Ignore common junk
 .DS_Store
 Thumbs.db
+
+data/
+

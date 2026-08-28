@@ -9,6 +9,9 @@ For each distinct value of "stage" call the qcc function with data = a data
  frame consisting of columns with name xi where i is an integer.
  The qcc argument for type is to be obtained from the chart_type parameter in
  the YAML file. Don't override the plot argument.
+However, for the highest value of "stage" the call to qcc should specify the
+ center and limits arguments as the center and limits of the qcc object from the
+ previous stage.
  
 Change the names of the elements in the list of qcc objects to format "stage_i"
 where i is an integer corresponding to the element's index in the list.

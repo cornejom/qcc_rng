@@ -1,4 +1,5 @@
-# Purpose: Generate random numerical data for quality control charting (QCC) based on specified stage distributions.
+# Purpose: Generate random numerical data for quality control charting (QCC) based on
+#  specified stage distributions.
 # This file was generated using the prompt_RNG_spec_for_qcc.txt file as the specification.
 
 import os

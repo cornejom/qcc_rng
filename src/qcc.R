@@ -19,12 +19,24 @@ df <- read.csv(input_file, stringsAsFactors = FALSE)
 # 4. Sort the data frame by stage and batch
 df <- df[order(df$stage, df$batch), ]
 
-# 5. Extract distinct stages and target chart type
+# 5. Extract distinct stages and parameters from the configuration
 stages <- unique(df$stage)
 chart_type <- config$qcc_params$chart_type
 
+# Extract rounding digits from YAML (checking within qcc_params or root level)
+round_digits <- if (!is.null(config$qcc_params$round_digits)) {
+  config$qcc_params$round_digits
+} else {
+  config$round_digits 
+}
+
 # 6. Group by "stage" and call the qcc function for each distinct stage
-qcc_list <- lapply(stages, function(s) {
+qcc_list <- list()
+max_stage_val <- max(stages)
+
+for (i in seq_along(stages)) {
+  s <- stages[i]
+  
   # Subset data for the current stage
   stage_data <- df[df$stage == s, ]
   
@@ -34,9 +46,20 @@ qcc_list <- lapply(stages, function(s) {
   # Extract only those columns for the qcc data argument
   qcc_data <- stage_data[, xi_cols, drop = FALSE]
   
-  # Execute qcc (do not override the plot argument)
-  qcc(data = qcc_data, type = chart_type)
-})
+  # For the highest value of "stage", use center and limits from the previous stage
+  if (s == max_stage_val && i > 1) {
+    prev_qcc <- qcc_list[[i - 1]]
+    qcc_list[[i]] <- qcc(
+      data = qcc_data, 
+      type = chart_type, 
+      center = prev_qcc$center, 
+      limits = prev_qcc$limits
+    )
+  } else {
+    # Execute qcc standardly (do not override the plot argument)
+    qcc_list[[i]] <- qcc(data = qcc_data, type = chart_type)
+  }
+}
 
 # 7. Change the names of the elements in the list to format "stage_i"
 names(qcc_list) <- paste0("stage_", seq_along(qcc_list))
@@ -45,28 +68,53 @@ names(qcc_list) <- paste0("stage_", seq_along(qcc_list))
 tidy_list <- lapply(seq_along(qcc_list), function(i) {
   q_obj <- qcc_list[[i]]
   
-  # Extract limits specifically from limits[1,1] and limits[1,2]
-  lim_1 <- q_obj$limits[1, 1]
-  lim_2 <- q_obj$limits[1, 2]
-  
-  # Create a data frame for the current stage and rename limits to LCL and UCL
-  data.frame(
-    stage = i,
-    group = seq_len(length(q_obj$statistics)),
-    xbar = as.numeric(q_obj$statistics),
+  # Create a data frame for the current stage
+  stage_df <- data.frame(
+    stage = as.integer(i),
+    group = as.integer(seq_len(length(q_obj$statistics))),
+    statistics = as.numeric(q_obj$statistics),
     center = as.numeric(q_obj$center),
-    LCL = as.numeric(lim_1),
-    UCL = as.numeric(lim_2),
+    LCL = as.numeric(q_obj$limits[1, 1]),
+    UCL = as.numeric(q_obj$limits[1, 2]),
     stringsAsFactors = FALSE
   )
+  
+  # Rename the "statistics" column to match the chart_type parameter
+  names(stage_df)[names(stage_df) == "statistics"] <- chart_type
+  
+  return(stage_df)
 })
 
 # Stack all individual data frames into a single consolidated data frame
 final_df <- do.call(rbind, tidy_list)
 
-# Logical indicators of non-integer numeric columns
-roundables <- sapply(final_df, function(x) is.numeric(x) & !(is.integer(x)))
-final_df[,roundables] <- lapply(final_df[roundables], round, digits=2)
+# 9. Override values of center, LCL, and UCL for the last stage
+max_stage <- max(final_df$stage)
 
-# 9. Save the final data frame to file "control_chart_stats.csv" in the same directory
+if (max_stage > 1) {
+  # Identify the last row of the previous stage
+  prev_stage_rows <- which(final_df$stage == (max_stage - 1))
+  last_row_idx <- tail(prev_stage_rows, 1)
+  
+  # Extract the values to carry forward
+  carry_center <- final_df$center[last_row_idx]
+  carry_LCL <- final_df$LCL[last_row_idx]
+  carry_UCL <- final_df$UCL[last_row_idx]
+  
+  # Apply these values to all rows in the maximum stage
+  curr_stage_rows <- which(final_df$stage == max_stage)
+  final_df$center[curr_stage_rows] <- carry_center
+  final_df$LCL[curr_stage_rows] <- carry_LCL
+  final_df$UCL[curr_stage_rows] <- carry_UCL
+}
+
+# 10. Round all non-integer numeric columns to the specified decimal digits
+for (col in names(final_df)) {
+  # Check if column is numeric but NOT strictly an integer class
+  if (is.numeric(final_df[[col]]) && !is.integer(final_df[[col]])) {
+    final_df[[col]] <- round(final_df[[col]], round_digits)
+  }
+}
+
+# 11. Save the final data frame to file "control_chart_stats.csv" in the same directory
 write.csv(final_df, output_file, row.names = FALSE)
