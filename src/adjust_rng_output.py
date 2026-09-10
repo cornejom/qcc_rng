@@ -1,3 +1,5 @@
+# This script is for adjusting the RNG output data, such as for adding arbitrary outliers.
+
 from pathlib import Path
 
 import pandas as pd
