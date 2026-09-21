@@ -6,15 +6,21 @@ import os
 import yaml
 import numpy as np
 import pandas as pd
+from pathlib import Path
+
+import utilities
 
 def main():
     # Load configuration parameters from config.yaml
     config_file = 'config.yaml'
     try:
-        with open(config_file, 'r') as file:
+        root_dir = utilities.find_project_root(Path.cwd(), config_file)
+        config_path = root_dir / config_file
+
+        with open(config_path, 'r') as file:
             config = yaml.safe_load(file)
-    except FileNotFoundError:
-        print(f"Error: {config_file} not found in the root directory.")
+    except FileNotFoundError as e:
+        print(f"Error: {e}")
         return
 
     # Extract target directories and parameters

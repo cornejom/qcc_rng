@@ -3,6 +3,7 @@
 #!.continue/rules/
 !.continue/**/CONTINUE.md
 
+# Ignore the virtual environment
 .venv/
 
 # Ignore some R & RStudio files
@@ -13,5 +14,5 @@
 # Ignore common junk
 .DS_Store
 Thumbs.db
-
-
+__pycache__/
+.ipynb_checkpoints/
